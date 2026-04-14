@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from layers import SimpleNN
 
-BATCH_SIZE = 64
+BATCH_SIZE = 512
 LEARNING_RATE = 0.001
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EPOCHS = 10
+EPOCHS = 15
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
@@ -51,6 +51,31 @@ def evaluate(model, loader):
             total += target.size(0)
             correct += (predicted == target).sum().item()
     return 100.0 * correct / total
+
+
+def show_predictions(model, loader, num=10):
+    model.eval()
+    dataiter = iter(loader)
+    images, labels = next(dataiter)
+    images, labels = images.to(DEVICE), labels.to(DEVICE)
+
+    with torch.no_grad():
+        outputs = model(images)
+        _, predicted = torch.max(outputs, 1)
+
+    # 移回 CPU 用于绘图
+    images = images.cpu()
+    labels = labels.cpu()
+    predicted = predicted.cpu()
+
+    fig, axes = plt.subplots(2, 5, figsize=(12, 6))
+    axes = axes.flatten()
+    for i in range(num):
+        axes[i].imshow(images[i].squeeze(0), cmap="gray")
+        axes[i].set_title(f"True: {labels[i]}, Pred: {predicted[i]}")
+        axes[i].axis("off")
+    plt.suptitle("Model Predictions on Test Set")
+    plt.show()
 
 
 def main():
@@ -140,6 +165,17 @@ def main():
 
     plt.ioff()  # 关闭交互模式
     plt.show()  # 最后保持图像显示
+
+    show_predictions(model, test_loader)
+
+    torch.save(model.state_dict(), "mnist_model.pth")
+    print("模型已保存！")
+
+    """ 加载模型
+    model = SimpleNN().to(DEVICE)
+    model.load_state_dict(torch.load("mnist_model.pth"))
+    model.eval()
+    """
 
 
 if __name__ == "__main__":
