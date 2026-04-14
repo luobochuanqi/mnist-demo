@@ -1,0 +1,7 @@
+[project]
+name = "mnist-demo"
+version = "0.1.0"
+description = "A 'Hello World' in the field of machine learning, it was one of my practice projects."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
